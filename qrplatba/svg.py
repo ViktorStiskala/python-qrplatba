@@ -1,5 +1,6 @@
 from qrcode.image import svg
 import xml.etree.ElementTree as ET
+from .util import is_py_2_version
 
 
 class QRPlatbaSVGImage(svg.SvgFragmentImage):
@@ -23,7 +24,10 @@ class QRPlatbaSVGImage(svg.SvgFragmentImage):
         self.line_size = self.SCALE / 5
         self.font_height = 2.5 * self.SCALE
 
-        super().__init__(border, width, box_size)
+        if is_py_2_version():
+            super(QRPlatbaSVGImage, self).__init__(border, width, box_size)
+        else:
+            super().__init__(border, width, box_size)
         self.border = self.inside_border + border  # inside border
 
     def drawrect(self, row, col):
