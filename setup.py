@@ -10,7 +10,7 @@ setup(
 	version='0.3.2',
 	packages=['qrplatba'],
 	include_package_data=True,
-	license='MPL',
+	license='MPL 2.0',
 	description='QR platba SVG QR code and SPAYD string generator',
 	author='Viktor Stískala',
 	author_email='viktor@stiskala.cz',
@@ -23,7 +23,7 @@ setup(
 		'Operating System :: OS Independent',
 		'Programming Language :: Python',
 		'Programming Language :: Python :: 3.3',
-		'Topic :: Software Development :: Libraries',
-		'Topic :: Software Development :: Python Modules',
+		'Topic :: Software Development :: Libraries :: Python Modules',
+		'Topic :: Multimedia :: Graphics',
 	],
 )
