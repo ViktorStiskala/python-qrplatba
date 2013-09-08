@@ -6,6 +6,9 @@ python-qrplatba
 
 QR platba SVG QR code and SPD string generator.
 
+.. image:: example.svg
+    :target: example.svg
+
 See http://qr-platba.cz/pro-vyvojare/ for more information about the specification (available only in czech).
 
 .. code-block:: python
@@ -33,5 +36,5 @@ License
 
 This software is licensed under MPL 2.0.
 
-http://mozilla.org/MPL/2.0/
-http://www.mozilla.org/MPL/2.0/FAQ.html#use
+- http://mozilla.org/MPL/2.0/
+- http://www.mozilla.org/MPL/2.0/FAQ.html#use
