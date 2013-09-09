@@ -16,7 +16,7 @@ if is_py_2_version:
 
 setup(
     name='qrplatba',
-    version='0.3.2',
+    version='0.3.3',
     packages=['qrplatba'],
     include_package_data=True,
     license='MPL',
