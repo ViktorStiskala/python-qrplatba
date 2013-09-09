@@ -27,7 +27,7 @@ class QRPlatbaSVGImage(svg.SvgFragmentImage):
         self.line_size = self.SCALE / 5
         self.font_height = 2.5 * self.SCALE
 
-        super().__init__(border, width, box_size)
+        super(QRPlatbaSVGImage, self).__init__(border, width, box_size)
         self.border = self.inside_border + border  # inside border
 
     def drawrect(self, row, col):
