@@ -6,8 +6,8 @@ python-qrplatba
 
 QR platba SVG QR code and SPD string generator.
 
-.. image:: example.svg
-    :target: example.svg
+.. image:: https://raw.github.com/hareevs/python-qrplatba/gh-pages/example.png
+    :target: http://hareevs.github.io/python-qrplatba/example.svg
 
 See http://qr-platba.cz/pro-vyvojare/ for more information about the specification (available only in czech).
 
