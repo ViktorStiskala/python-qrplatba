@@ -135,7 +135,7 @@ class QRPlatbaGenerator:
             XKS=self._format_item_string(self.x_ks, 'X-KS'),
             XID=self._format_item_string(self.x_id, 'X-ID'),
             XURL=self._format_item_string(self.x_url, 'X-URL')
-        )
+        ).rstrip('*')
 
     def make_image(self, border=2, error_correction=qrcode.constants.ERROR_CORRECT_M):
         qr = qrcode.QRCode(
