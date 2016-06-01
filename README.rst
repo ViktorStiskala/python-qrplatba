@@ -30,6 +30,20 @@ To install qrplatba, simply:
 .. code-block:: bash
 
     $ pip install qrplatba
+    
+Note on image file formats
+--------------------------
+
+This module generates SVG file which is an XML-based vector image format. You can use various libraries and/or utilities to convert it to other vector or bitmap image formats. Below is an example how to use ``libRSVG`` to convert SVG images.
+
+libRSVG
+~~~~~~~
+
+`libRSVG <https://wiki.gnome.org/action/show/Projects/LibRsvg?action=show>`_ renders SVG files using cairo and supports many output image formats. It can also be used directly in console with ``rsvg-convert`` command.
+
+.. code-block:: bash
+
+    $ rsvg-convert -f pdf example.svg -o example.pdf
 
 License
 -------
