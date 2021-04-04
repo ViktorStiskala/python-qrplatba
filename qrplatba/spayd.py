@@ -9,7 +9,7 @@ from qrplatba.svg import QRPlatbaSVGImage
 
 
 class QRPlatbaGenerator:
-    RE_ACCOUNT = re.compile(r'(?P<ba>\d+(?=-))?(?P<a>\d+)/(?P<b>\d{4})')
+    RE_ACCOUNT = re.compile(r'((?P<ba>\d+(?=-))-)?(?P<a>\d+)\/(?P<b>\d{4})')
 
     def __init__(self, account, amount=None, currency=None, x_vs=None, x_ss=None, x_ks=None, alternate_accounts=None, recipient_name=None,
                  due_date=None, payment_type=None, message=None, notification_type=None, notification_address=None, x_per=None, x_id=None,
