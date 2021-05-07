@@ -13,14 +13,18 @@ requirements = ['qrcode>=3.0.0']
 if is_py_2_version:
     requirements.append('six')
 
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.rst'), 'r', encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name='qrplatba',
-    version='0.4',
+    version='0.4.1',
     packages=['qrplatba'],
     include_package_data=True,
     license='MPL',
     description='QR platba SVG QR code and SPAYD string generator',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
     author='Viktor Stískala',
     author_email='viktor@stiskala.cz',
     install_requires=requirements,
