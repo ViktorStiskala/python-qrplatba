@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 is_py_2_version = sys.version_info[0] == 2
 
-requirements = ['qrcode>=3.0.0']
+requirements = ['qrcode<7.4']
 
 if is_py_2_version:
     requirements.append('six')
