@@ -1,6 +1,6 @@
 # python-qrplatba
 
-![https://badge.fury.io/py/qrplatba.png](http://badge.fury.io/py/qrplatba)
+[![Stable Version](https://img.shields.io/pypi/v/qrplatba?label=stable)](https://pypi.org/project/qrplatba/#description)
 
 Python library for generating QR codes for QR platba.
 
