@@ -18,7 +18,7 @@ with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.rst')
 
 setup(
     name='qrplatba',
-    version='0.5.0',
+    version='0.5.1',
     packages=['qrplatba'],
     include_package_data=True,
     license='MPL',
