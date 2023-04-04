@@ -1,153 +1,139 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+from decimal import Decimal
+from typing import NamedTuple
 
 from qrcode.image import svg
 import xml.etree.ElementTree as ET
 
 
-class QRPlatbaSVGImage(svg.SvgFragmentImage):
+class ScaledSizes(NamedTuple):
+    inside_border: Decimal
+    outside_border: Decimal
+    width: Decimal
+    line_size: Decimal
+    ratio: Decimal
+
+
+class QRPlatbaSVGImage(svg.SvgPathImage):
     """
     QR Platba SVG image generator.
 
     Inner padding is created according to specification (http://qr-platba.cz/pro-vyvojare/specifikace-formatu/),
-    text size is computed to achieve width of 16 QR points. Width of the black border around the QR code is only guessed
-    (1/5 of the QR point size), because the specification declares width of 1.5pt which is quite unusable in SVG image.
+    text size is computed to achieve width of 16 QR points.
     """
 
-    QR_TEXT_STYLE = 'font-size:{size}{units};font-weight:bold;fill:#000000;font-family:Arial;'
-    QR_PATH_STYLE = 'fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none'
-    UNITS = 'px'
-    SCALE = 5
+    QR_TEXT_STYLE = 'font-size:{size}px;font-weight:bold;fill:#000000;font-family:Arial;'
+    FONT_SIZE = Decimal('3.5')
+    FONT_HEIGHT = Decimal('8')
 
-    def __init__(self, border, width, box_size):
-        self._points = set()
+    LINE_SIZE = Decimal('0.25')
+    INSIDE_BORDER = 4
+
+    BOTTOM_LINE_SEGMENTS = (2, 22)
+
+    def __init__(self, border, width, box_size, *args, **kwargs):
         self.outside_border = border
-        self.inside_border = 4
-        self.line_size = self.SCALE / 5
-        self.font_height = 2.5 * self.SCALE
+        border += self.INSIDE_BORDER + self.LINE_SIZE  # outside border + inside border + line size
 
-        super(QRPlatbaSVGImage, self).__init__(border, width, box_size)
-        self.border = self.inside_border + border  # inside border
+        super().__init__(border, width, box_size, *args, **kwargs)
 
-    def drawrect(self, row, col):
-        # (x, y)
-        self._points.add((col, row))
+    def _get_scaled_sizes(self):
+        """Computes sizes of the QR code and QR text according to the scale ratio"""
+        scale_ratio = self.units(self.box_size, text=False)
 
-    def _svg(self, tag=ET.QName("svg")):
-        dimension = 2 * (self.outside_border + self.inside_border) * self.SCALE
-        dimension += self.width * self.SCALE + 2 * self.line_size
+        def strip_zeros(value):
+            return Decimal(str(value).rstrip('0').rstrip('.')) if '.' in str(value) else value
 
-        # height of the SVG image have to be bigger due to text element
-        height = dimension + self.font_height + 0.679 * self.SCALE
-        svg = ET.Element(
-            tag,
-            version="1.1",
-            width="{0}{units}".format(dimension, units=self.UNITS),
-            height="{0}{units}".format(height, units=self.UNITS),
-            viewBox="0 0 {w} {h}".format(w=dimension, h=height)
+        return ScaledSizes(
+            inside_border=strip_zeros(self.INSIDE_BORDER * scale_ratio),
+            outside_border=strip_zeros(self.outside_border * scale_ratio),
+            width=strip_zeros(self.width * scale_ratio),
+            line_size=strip_zeros(self.LINE_SIZE * scale_ratio),
+            ratio=scale_ratio
         )
-        svg.set("xmlns", self._SVG_namespace)
-        return svg
 
     def make_border(self):
         """Creates black thin border around QR code"""
+        scaled = self._get_scaled_sizes()
 
-        scaled_inside = self.inside_border * self.SCALE
-        scaled_outside = self.outside_border * self.SCALE
-        scaled_width = self.width * self.SCALE
+        def sizes(o, i, w, l):  # size helper
+            return o * scaled.outside_border + i * scaled.inside_border + w * scaled.width + l * scaled.line_size
 
-        horizontal_line = 'M {x0} {y0} h {length} v {width} h -{length} z'
-        vertical_line = 'M {x0} {y0} v {length} h {width} v -{length} z'
+        horizontal_line = 'M{x0},{y0}h{length}v{width}h-{length}z'
+        vertical_line = 'M{x0},{y0}v{length}h{width}v-{length}z'
 
-        subpaths = list()
-        # top line
-        subpaths.append(horizontal_line.format(
-            x0=scaled_outside,
-            y0=scaled_outside,
-            length=scaled_inside * 2 + scaled_width + 2 * self.line_size,
-            width=self.line_size
-        ))
+        def get_subpaths():
+            # top line
+            yield horizontal_line.format(
+                x0=scaled.outside_border,
+                y0=scaled.outside_border,
+                length=sizes(0, 2, 1, 2),
+                width=scaled.line_size
+            )
 
-        # bottom line - first segment
-        subpaths.append(horizontal_line.format(
-            x0=scaled_outside,
-            y0=scaled_outside + self.line_size + 2 * scaled_inside + scaled_width,
-            length=self.SCALE * 2,
-            width=self.line_size
-        ))
+            b_first, b_second = self.BOTTOM_LINE_SEGMENTS
 
-        # bottom line - second segment
-        subpaths.append(horizontal_line.format(
-            x0=scaled_outside + 22 * self.SCALE,
-            y0=scaled_outside + self.line_size + 2 * scaled_inside + scaled_width,
-            length=scaled_width + 2 * scaled_inside + 2 * self.line_size - 22 * self.SCALE,  # 22 = 2 + 2 + 16 + 2
-            width=self.line_size
-        ))
+            # bottom line - first segment
+            yield horizontal_line.format(
+                x0=scaled.outside_border,
+                y0=sizes(1, 2, 1, 1),
+                length=b_first * scaled.ratio,
+                width=scaled.line_size
+            )
 
-        # left line
-        subpaths.append(vertical_line.format(
-            x0=scaled_outside,
-            y0=scaled_outside + self.line_size,
-            length=scaled_width + 2 * scaled_inside,
-            width=self.line_size
-        ))
+            # bottom line - second segment
+            yield horizontal_line.format(
+                x0=scaled.outside_border + b_second * scaled.ratio,
+                y0=sizes(1, 2, 1, 1),
+                length=sizes(0, 2, 1, 2) - b_second * scaled.ratio,
+                width=scaled.line_size
+            )
 
-        # right line
-        subpaths.append(vertical_line.format(
-            x0=scaled_outside + self.line_size + 2 * scaled_inside + scaled_width,
-            y0=scaled_outside + self.line_size,
-            length=scaled_width + 2 * scaled_inside,
-            width=self.line_size
-        ))
+            # left line
+            yield vertical_line.format(
+                x0=scaled.outside_border,
+                y0=scaled.outside_border + scaled.line_size,
+                length=scaled.width + 2 * scaled.inside_border,
+                width=scaled.line_size
+            )
 
-        return ET.Element(ET.QName("path"), style=self.QR_PATH_STYLE, d=' '.join(subpaths), id="qrplatba-border")
+            # right line
+            yield vertical_line.format(
+                x0=sizes(1, 2, 1, 1),
+                y0=sizes(1, 0, 0, 1),
+                length=sizes(0, 2, 1, 0),
+                width=scaled.line_size
+            )
+
+        subpaths = ' '.join(get_subpaths())
+        return ET.Element('path', d=subpaths, id="qrplatba-border", **self.QR_PATH_STYLE)
 
     def make_text(self):
         """Creates "QR platba" text element"""
+        scaled = self._get_scaled_sizes()
+        text_style = self.QR_TEXT_STYLE.format(size=(self.FONT_SIZE * scaled.ratio).quantize(Decimal('0.01')))
 
-        text_style = self.QR_TEXT_STYLE.format(size=3.443101883 * self.SCALE, units=self.UNITS)
+        x_pos = str(scaled.outside_border + scaled.line_size + 4 * scaled.ratio)
+        y_pos = str(scaled.outside_border + scaled.line_size + 2 * scaled.inside_border + scaled.width + (self.FONT_HEIGHT / 4) * scaled.ratio)
 
-        x_pos = str(self.outside_border * self.SCALE + self.line_size + 4 * self.SCALE)
-        y_pos = str(self.outside_border * self.SCALE + 2 * self.line_size + 2 * self.inside_border * self.SCALE
-                    + self.width * self.SCALE + self.font_height)
-        text_el = ET.Element(ET.QName("text"), style=text_style, x=x_pos, y=y_pos, id="qrplatba-text")
+        text_el = ET.Element('text', style=text_style, x=x_pos, y=y_pos, id="qrplatba-text")
         text_el.text = 'QR platba'
+
         return text_el
 
-    def _generate_subpaths(self):
-        """Generates individual QR points as subpaths"""
+    def _svg(self, viewBox=None, **kwargs):
+        scaled = self._get_scaled_sizes()
+        h_pixels = self.pixel_size + (self.FONT_HEIGHT * scaled.ratio)
 
-        scale = self.SCALE
-
-        for point in self._points:
-            x_base = point[0] * scale + self.border * scale + self.line_size
-            y_base = point[1] * scale + self.border * scale + self.line_size
-
-            yield 'M {x0} {y0} L {x0} {y1} L {x1} {y1} L {x1} {y0} z'.format(
-                x0=x_base,
-                y0=y_base,
-                x1=x_base + scale,
-                y1=y_base + scale
-            )
-
-    def make_path(self):
-        """Creates path element consisting of QR points"""
-
-        subpaths = self._generate_subpaths()
-
-        return ET.Element(
-            ET.QName("path"),
-            style=self.QR_PATH_STYLE,
-            d=' '.join(subpaths),
-            id="qr-path"
+        box = "0 0 {w} {h}".format(
+            w=self.units(self.pixel_size, text=False),
+            h=self.units(h_pixels, text=False)
         )
+        svg_el = super()._svg(viewBox=box, **kwargs)
+        svg_el.append(self.make_border())
+        svg_el.append(self.make_text())
 
-    def _write(self, stream):
-        """Appends all elements to SVG document"""
+        # update size of the SVG element
+        svg_el.attrib['height'] = str(self.units(h_pixels))
 
-        self._img.append(self.make_path())
-        self._img.append(self.make_border())
-        self._img.append(self.make_text())
+        return svg_el
 
-        ET.ElementTree(self._img).write(stream, encoding="UTF-8", xml_declaration=True)

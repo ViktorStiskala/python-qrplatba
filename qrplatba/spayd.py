@@ -1,7 +1,3 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 from datetime import datetime, date
 import re
 import qrcode
@@ -137,12 +133,13 @@ class QRPlatbaGenerator:
             XURL=self._format_item_string(self.x_url, 'X-URL')
         ).rstrip('*')
 
-    def make_image(self, border=2, error_correction=qrcode.constants.ERROR_CORRECT_M):
+    def make_image(self, border=2, box_size=12, error_correction=qrcode.constants.ERROR_CORRECT_M):
         qr = qrcode.QRCode(
-            version=1,
+            version=None,
             error_correction=error_correction,
             image_factory=QRPlatbaSVGImage,
             border=border,
+            box_size=box_size
         )
         qr.add_data(self.get_text())
         qr.make(fit=True)

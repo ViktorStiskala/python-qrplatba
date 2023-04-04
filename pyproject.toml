@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "python-qrplatba"
+version = "1.0.0"
+description = "QR platba SVG QR code and SPAYD string generator."
+authors = ["Viktor Stískala <viktor@stiskala.cz>"]
+repository = "https://github.com/ViktorStiskala/python-qrplatba"
+classifiers=[
+    'Intended Audience :: Developers',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Software Development :: Libraries',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+]
+packages = [
+    { include = "qrplatba" },
+]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+qrcode = "^7.4"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.2"
+pytest-github-actions-annotate-failures = "^0.1.8"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
