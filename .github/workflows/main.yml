@@ -76,10 +76,10 @@ jobs:
         run: poetry run pytest -v
 
       - name: Run ruff
-        run: ruff .
+        run: poetry run ruff .
 
       - name: Run black
-        run: black --check .
+        run: poetry run black --check .
 
       - name: Check for clean working tree
         run: |
