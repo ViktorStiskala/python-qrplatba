@@ -1,5 +1,6 @@
-__pycache__
+__pycache__/
 *.pyc
 dist/
 .idea/
 qrplatba.egg-info/
+.*_cache/
