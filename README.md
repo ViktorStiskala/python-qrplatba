@@ -63,5 +63,10 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 - Changed license to MIT
 - Added unit tests
 
+### `1.1.0` (5 April 2023)
+
+- Dropped support for Python 3.7
+- Added pre-commit, black and ruff for code formatting
+
 
 

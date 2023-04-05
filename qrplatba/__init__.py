@@ -1,1 +1,0 @@
-from .spayd import QRPlatbaGenerator
