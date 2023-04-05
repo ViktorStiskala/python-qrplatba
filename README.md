@@ -52,6 +52,11 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 ## Changelog
 
+### `1.1.0` (5 April 2023)
+
+- Dropped support for Python 3.7
+- Added pre-commit, black and ruff for code formatting
+
 ### `1.0.0` (4 April 2023)
 
 **Warning:** While the API is mostly backwards compatible, the look and size of the generated QR codes has changed.
@@ -62,11 +67,6 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 - Dropped support for Python `2.x` and `<3.7`
 - Changed license to MIT
 - Added unit tests
-
-### `1.1.0` (5 April 2023)
-
-- Dropped support for Python 3.7
-- Added pre-commit, black and ruff for code formatting
 
 
 
