@@ -75,6 +75,12 @@ jobs:
       - name: Run pytest
         run: poetry run pytest -v
 
+      - name: Run ruff
+        run: ruff .
+
+      - name: Run black
+        run: black --check .
+
       - name: Check for clean working tree
         run: |
           git diff --exit-code --stat HEAD
