@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import NamedTuple
 
 from qrcode.image import svg
-import xml.etree.ElementTree as ET
+from qrcode.compat.etree import ET
 
 
 class ScaledSizes(NamedTuple):
