@@ -52,6 +52,9 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 ## Changelog
 
+### `1.1.1` (24 April 2023)
+- Added compatibility with `lxml` library. Fixes `TypeError` when using this library while `lxml` is installed in the same virtualenv.
+
 ### `1.1.0` (5 April 2023)
 
 - Dropped support for Python 3.7
