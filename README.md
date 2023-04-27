@@ -46,6 +46,15 @@ This module generates SVG file which is an XML-based vector image format. You ca
 $ rsvg-convert -f pdf example.svg -o example.pdf
 ```
 
+## SPAYD format
+
+QR Platba uses SPAYD format (`application/x-shortpaymentdescriptor`) for encoding information related to bank transfer. In addition to generating QR codes, this library can also generate just the encoded string using the following code:
+
+```python
+generator = QRPlatbaGenerator('123456789/0123', 400.56, x_vs=2034456, message='text', due_date=due)
+spayd = generator.get_text()
+```
+
 ## License
 
 This software is licensed under [MIT license](https://opensource.org/license/mit/) since version `1.0.0`.
