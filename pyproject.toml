@@ -28,7 +28,7 @@ optional = true
 pytest = "^7.2"
 pytest-github-actions-annotate-failures = "^0.1.8"
 ruff = "^0.0.261"
-black = "^23.3.0"
+black = ">=23.3,<25.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.2.2"
