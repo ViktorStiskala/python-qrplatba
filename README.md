@@ -61,13 +61,20 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 ## Changelog
 
+### `1.2.0`
+- Dropped support for Python 3.8; added Python 3.12, 3.13 and 3.14
+- Migrated from [Poetry](https://python-poetry.org/) to [uv](https://docs.astral.sh/uv/)
+- Replaced `black` with `ruff format` for code formatting
+- Fixed `_format_item_string` silently dropping zero values (e.g. `x_vs=0`)
+- Added comprehensive SPAYD string generation tests
+
 ### `1.1.1` (24 April 2023)
 - Added compatibility with `lxml` library. Fixes `TypeError` when using this library while `lxml` is installed in the same virtualenv.
 
 ### `1.1.0` (5 April 2023)
 
 - Dropped support for Python 3.7
-- Added pre-commit, black and ruff for code formatting
+- Added pre-commit, ruff for code linting and formatting
 
 ### `1.0.0` (4 April 2023)
 
@@ -75,7 +82,7 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 - Updated requirements to support the latest `qrcode` version
 - Added support for custom output sizes using `box_size` and `border` parameters
-- Changed legacy setuptools to [poetry](https://python-poetry.org/)
+- Changed legacy setuptools to [poetry](https://python-poetry.org/), later migrated to [uv](https://docs.astral.sh/uv/)
 - Dropped support for Python `2.x` and `<3.7`
 - Changed license to MIT
 - Added unit tests

@@ -1,44 +1,57 @@
-[tool.poetry]
+[project]
 name = "qrplatba"
-version = "1.1.1"
+version = "1.2.0"
 description = "QR platba SVG QR code and SPAYD string generator."
-authors = ["Viktor Stískala <viktor@stiskala.cz>"]
-repository = "https://github.com/ViktorStiskala/python-qrplatba"
-classifiers=[
-    'Intended Audience :: Developers',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Topic :: Software Development :: Libraries',
-    'Topic :: Software Development :: Libraries :: Python Modules',
-]
-license = "MIT"
 readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "Viktor Stískala", email = "viktor@stiskala.cz" }
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "qrcode>=7.4",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-qrcode = "^7.4"
+[project.urls]
+Repository = "https://github.com/ViktorStiskala/python-qrplatba"
 
-[tool.poetry.group.test]
-optional = true
-[tool.poetry.group.test.dependencies]
-pytest = "^7.2"
-pytest-github-actions-annotate-failures = "^0.1.8"
-ruff = "^0.0.261"
-black = "^23.3.0"
+[dependency-groups]
+test = [
+    "pytest>=9; python_version >= '3.10'",
+    "pytest>=8.3, <9; python_version < '3.10'",
+    "pytest-github-actions-annotate-failures>=0.3",
+]
+lint = [
+    "ruff>=0.15",
+]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+    "pre-commit>=4",
+]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^3.2.2"
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
 line-length = 120
 
-[tool.black]
-line-length = 120
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.10.8,<0.11"]
+build-backend = "uv_build"

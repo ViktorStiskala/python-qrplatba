@@ -125,7 +125,7 @@ class QRPlatbaGenerator:
         return ""
 
     def _format_item_string(self, item, name):
-        if item:
+        if item is not None and item != "":
             return "{name}:{value}*".format(name=name, value=item)
         return ""
 

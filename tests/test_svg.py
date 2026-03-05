@@ -1,8 +1,10 @@
+import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 from decimal import Decimal
 
+import pytest
+
 from qrplatba import QRPlatbaGenerator
-from datetime import datetime, timedelta
-import xml.etree.ElementTree as ET
 
 
 class TestSVGImage:
@@ -33,9 +35,8 @@ class TestSVGImage:
         paths = root.findall(".//{http://www.w3.org/2000/svg}path")
         assert len(paths) == 2
 
-        for path in paths:
-            assert path.get("id") is not None
-            assert path.get("id") in ("qr-path", "qrplatba-border")
+        path_ids = {path.get("id") for path in paths}
+        assert path_ids == {"qr-path", "qrplatba-border"}
 
     def test_svg_scaling(self):
         svg_data = self.make_image(box_size=40)
@@ -62,3 +63,23 @@ class TestSVGImage:
 
         data = map(Decimal, viewbox.split(" "))
         assert list(data) == [Decimal(0), Decimal(0), Decimal("59.4"), Decimal("60.36")]
+
+    @pytest.mark.parametrize("box_size", [1, 12, 40, 100])
+    def test_svg_valid_structure(self, box_size):
+        svg_data = self.make_image(box_size=box_size)
+        root = ET.fromstring(svg_data)
+        assert root.get("width") is not None
+        assert root.get("height") is not None
+        assert root.get("viewBox") is not None
+
+        width_val = float(root.get("width").rstrip("mm"))
+        height_val = float(root.get("height").rstrip("mm"))
+        assert height_val > width_val
+
+    @pytest.mark.parametrize("border", [0, 2, 5])
+    def test_svg_border_values(self, border):
+        svg_data = self.make_image(border=border)
+        root = ET.fromstring(svg_data)
+        assert root is not None
+        paths = root.findall(".//{http://www.w3.org/2000/svg}path")
+        assert len(paths) == 2

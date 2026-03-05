@@ -1,8 +1,8 @@
 from decimal import Decimal
 from typing import NamedTuple
 
-from qrcode.image import svg
 from qrcode.compat.etree import ET
+from qrcode.image import svg
 
 
 class ScaledSizes(NamedTuple):
