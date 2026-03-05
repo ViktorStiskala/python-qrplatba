@@ -6,6 +6,8 @@ from qrplatba import QRPlatbaGenerator
 
 
 class TestIBANConversion:
+    """Czech account numbers must be correctly converted to IBAN; existing IBANs pass through."""
+
     @pytest.mark.parametrize(
         "czech_account,expected_iban",
         [
@@ -35,6 +37,8 @@ class TestIBANConversion:
 
 
 class TestGetText:
+    """SPAYD string generation with various field combinations."""
+
     @pytest.mark.parametrize(
         "kwargs,expected_parts,unexpected_parts",
         [
@@ -84,6 +88,8 @@ class TestGetText:
 
 
 class TestAmountFormatting:
+    """Amounts must be formatted with exactly two decimal places."""
+
     @pytest.mark.parametrize(
         "amount,expected",
         [
@@ -100,6 +106,8 @@ class TestAmountFormatting:
 
 
 class TestDueDateFormatting:
+    """Due dates must be formatted as YYYYMMDD regardless of input type."""
+
     @pytest.mark.parametrize(
         "due_date,expected",
         [
@@ -114,6 +122,8 @@ class TestDueDateFormatting:
 
 
 class TestFieldPresence:
+    """Zero values must be included in the output; None values must be omitted."""
+
     @pytest.mark.parametrize(
         "field,value,key",
         [
@@ -142,6 +152,8 @@ class TestFieldPresence:
 
 
 class TestAlternateAccounts:
+    """Alternate accounts must be converted to IBAN and included as ALT-ACC fields."""
+
     def test_alternate_accounts_mixed(self):
         generator = QRPlatbaGenerator(
             "CZ6508000000192000145399",
@@ -159,3 +171,56 @@ class TestAlternateAccounts:
         )
         text = generator.get_text()
         assert "ALT-ACC:CZ7508000000000123456789" in text
+
+
+class TestBackwardCompatibility:
+    """Verify all documented and expected import paths and API patterns still work."""
+
+    @pytest.mark.parametrize(
+        "import_statement,attr",
+        [
+            ("from qrplatba import QRPlatbaGenerator", "QRPlatbaGenerator"),
+            ("from qrplatba import SpaydGenerator", "SpaydGenerator"),
+            ("from qrplatba.generator import QRPlatbaGenerator", "QRPlatbaGenerator"),
+            ("from qrplatba.spayd import SpaydGenerator", "SpaydGenerator"),
+        ],
+    )
+    def test_import_paths(self, import_statement, attr):
+        ns = {}
+        exec(import_statement, ns)  # noqa: S102
+        assert attr in ns
+
+    def test_qrplatba_generator_inherits_spayd(self):
+        from qrplatba import QRPlatbaGenerator, SpaydGenerator
+
+        assert issubclass(QRPlatbaGenerator, SpaydGenerator)
+
+    def test_qrplatba_generator_has_get_text(self):
+        generator = QRPlatbaGenerator("CZ6508000000192000145399")
+        text = generator.get_text()
+        assert text.startswith("SPD*1.0*")
+
+    def test_qrplatba_generator_has_make_image(self):
+        generator = QRPlatbaGenerator("CZ6508000000192000145399")
+        img = generator.make_image()
+        assert hasattr(img, "save")
+        assert hasattr(img, "to_string")
+
+    def test_image_is_svg_subclass(self):
+        from qrcode.image.svg import SvgFragmentImage, SvgPathImage
+
+        img = QRPlatbaGenerator("CZ6508000000192000145399").make_image()
+        assert isinstance(img, SvgPathImage)
+        assert isinstance(img, SvgFragmentImage)
+
+    def test_save_positional_kind(self, tmp_path):
+        img = QRPlatbaGenerator("CZ6508000000192000145399").make_image()
+        filename = tmp_path / "test.svg"
+        img.save(filename, "SVG")
+        assert filename.exists()
+
+    def test_to_string_encoding(self):
+        img = QRPlatbaGenerator("CZ6508000000192000145399").make_image()
+        svg_data = img.to_string(encoding="unicode")
+        assert isinstance(svg_data, str)
+        assert "QR platba" in svg_data

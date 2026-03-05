@@ -1,7 +1,7 @@
 [project]
 name = "qrplatba"
 version = "1.2.0"
-description = "QR platba SVG QR code and SPAYD string generator."
+description = "QR platba SVG/PNG QR code and SPAYD string generator."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
@@ -24,6 +24,9 @@ classifiers = [
 dependencies = [
     "qrcode>=7.4",
 ]
+
+[project.optional-dependencies]
+png = ["resvg-py>=0.2"]
 
 [project.urls]
 Repository = "https://github.com/ViktorStiskala/python-qrplatba"
