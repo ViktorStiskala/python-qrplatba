@@ -68,13 +68,6 @@ generator = SpaydGenerator('123456789/0123', 400.56, x_vs=2034456, message='text
 spayd = generator.get_text()
 ```
 
-This also works with `QRPlatbaGenerator`, which inherits from `SpaydGenerator`:
-
-```python
-generator = QRPlatbaGenerator('123456789/0123', 400.56, x_vs=2034456, message='text', due_date=due)
-spayd = generator.get_text()
-```
-
 ## License
 
 This software is licensed under [MIT license](https://opensource.org/license/mit/) since version `1.0.0`.
