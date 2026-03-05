@@ -36,11 +36,11 @@ $ pip install qrplatba
 
 ## Note on image file formats
 
-This module generates SVG file which is an XML-based vector image format. You can use various libraries and/or utilities to convert it to other vector or bitmap image formats. Below is an example how to use ``libRSVG`` to convert SVG images.
+This module generates SVG file which is an XML-based vector image format. You can use various libraries and/or utilities to convert it to other vector or bitmap image formats. Below is an example how to use `libRSVG` to convert SVG images.
 
 ### libRSVG
 
-[`libRSVG`](https://wiki.gnome.org/action/show/Projects/LibRsvg?action=show) renders SVG files using cairo and supports many output image formats. It can also be used directly in console with ``rsvg-convert`` command.
+[libRSVG](https://wiki.gnome.org/action/show/Projects/LibRsvg?action=show) renders SVG files using cairo and supports many output image formats. It can also be used directly in console with `rsvg-convert` command.
 
 ```bash
 $ rsvg-convert -f pdf example.svg -o example.pdf
@@ -61,12 +61,13 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 ## Changelog
 
-### `1.2.0`
-- Dropped support for Python 3.8; added Python 3.12, 3.13 and 3.14
+### `1.2.0` (5 March, 2026)
+- **Dropped support for Python 3.8**; added Python 3.12, 3.13 and 3.14
 - Migrated from [Poetry](https://python-poetry.org/) to [uv](https://docs.astral.sh/uv/)
 - Replaced `black` with `ruff format` for code formatting
 - Fixed `_format_item_string` silently dropping zero values (e.g. `x_vs=0`)
 - Added comprehensive SPAYD string generation tests
+- Release tags now use `v` prefix (e.g. `v1.2.0` instead of `1.2.0`)
 
 ### `1.1.1` (24 April 2023)
 - Added compatibility with `lxml` library. Fixes `TypeError` when using this library while `lxml` is installed in the same virtualenv.

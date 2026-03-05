@@ -131,7 +131,7 @@ class TestFieldPresence:
         "field,key",
         [
             ("x_vs", "X-VS"),
-            ("currency", "*CC"),
+            ("currency", "*CC"),  # prefixed with * to avoid matching the "ACC:" field
             ("message", "MSG"),
             ("recipient_name", "RN"),
         ],
