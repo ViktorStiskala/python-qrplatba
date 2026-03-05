@@ -1,8 +1,13 @@
+import os
 from decimal import Decimal
+from pathlib import Path
 from typing import NamedTuple
 
-from qrcode.image import svg
 from qrcode.compat.etree import ET
+from qrcode.image import svg
+
+_FONT_DIR = Path(__file__).parent / "fonts"
+_INTER_BOLD = str(_FONT_DIR / "Inter-Bold.ttf")
 
 
 class ScaledSizes(NamedTuple):
@@ -21,11 +26,11 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
     text size is computed to achieve width of 16 QR points.
     """
 
-    QR_TEXT_STYLE = "font-size:{size}px;font-weight:bold;fill:#000000;font-family:Arial;"
+    QR_TEXT_STYLE = "font-size:{size}px;font-weight:bold;fill:#000000;font-family:Inter,Arial,Helvetica,sans-serif;"
     FONT_SIZE = Decimal("3.5")
-    FONT_HEIGHT = Decimal("8")
+    FONT_HEIGHT = Decimal("10")
 
-    LINE_SIZE = Decimal("0.25")
+    LINE_SIZE = Decimal("0.5")
     INSIDE_BORDER = 4
 
     BOTTOM_LINE_SEGMENTS = (2, 22)
@@ -112,13 +117,13 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
         scaled = self._get_scaled_sizes()
         text_style = self.QR_TEXT_STYLE.format(size=(self.FONT_SIZE * scaled.ratio).quantize(Decimal("0.01")))
 
-        x_pos = str(scaled.outside_border + scaled.line_size + 4 * scaled.ratio)
+        x_pos = str(scaled.outside_border + scaled.line_size + 3 * scaled.ratio)
         y_pos = str(
             scaled.outside_border
             + scaled.line_size
             + 2 * scaled.inside_border
             + scaled.width
-            + (self.FONT_HEIGHT / 4) * scaled.ratio
+            + (self.FONT_HEIGHT / 5) * scaled.ratio
         )
 
         text_el = ET.Element("text", style=text_style, x=x_pos, y=y_pos, id="qrplatba-text")
@@ -142,3 +147,46 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
         svg_el.attrib["height"] = str(self.units(h_pixels))
 
         return svg_el
+
+    def save(self, stream, kind=None, *, format=None, zoom=None, resvg_kwargs=None):
+        if format is None:
+            format = kind
+        if format is None or format.upper() == "SVG":
+            return super().save(stream, kind=kind)
+
+        if format.upper() != "PNG":
+            raise ValueError(f"Unsupported format: {format}")
+
+        self._save_png(stream, zoom=zoom, resvg_kwargs=resvg_kwargs)
+
+    def _save_png(self, stream, *, zoom=None, resvg_kwargs=None):
+        try:
+            import resvg_py
+        except ImportError:
+            raise ImportError(
+                "PNG support requires the 'resvg-py' package. Install it with: pip install qrplatba[png]"
+            ) from None
+
+        if resvg_kwargs is None:
+            resvg_kwargs = {"zoom": zoom} if zoom is not None else {}
+        else:
+            resvg_kwargs = {k: v for k, v in resvg_kwargs.items() if k not in ("svg_string", "svg_path")}
+            if zoom is not None:
+                resvg_kwargs["zoom"] = zoom
+
+        # SVG uses mm units which require a DPI value for rasterization
+        resvg_kwargs.setdefault("dpi", 96)
+        resvg_kwargs.setdefault("shape_rendering", "crisp_edges")
+
+        if "font_files" not in resvg_kwargs and "skip_system_fonts" not in resvg_kwargs:
+            resvg_kwargs["font_files"] = [_INTER_BOLD]
+            resvg_kwargs["skip_system_fonts"] = True
+
+        svg_string = self.to_string(encoding="unicode")
+        png_bytes = resvg_py.svg_to_bytes(svg_string=svg_string, **resvg_kwargs)
+
+        if isinstance(stream, (str, bytes, os.PathLike)):
+            with open(stream, "wb") as f:
+                f.write(png_bytes)
+        else:
+            stream.write(png_bytes)

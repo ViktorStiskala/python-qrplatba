@@ -1,10 +1,10 @@
-from datetime import datetime, date
 import re
-import qrcode
-from qrplatba.svg import QRPlatbaSVGImage
+from datetime import date, datetime
 
 
-class QRPlatbaGenerator:
+class SpaydGenerator:
+    """SPAYD (Short Payment Descriptor) string generator."""
+
     RE_ACCOUNT = re.compile(r"((?P<ba>\d+(?=-))-)?(?P<a>\d+)/(?P<b>\d{4})")
 
     def __init__(
@@ -32,7 +32,7 @@ class QRPlatbaGenerator:
 
         :param account: ACC account number, can be specified either as IBAN or in CZ format 12-123456789/0300
         :param amount: AM payment amount
-        :param currency: CC currency (3 digits)
+        :param currency: CC currency (3 letters)
         :param x_vs: X-VS
         :param x_ss: X-SS
         :param x_ks: X-KS
@@ -125,7 +125,7 @@ class QRPlatbaGenerator:
         return ""
 
     def _format_item_string(self, item, name):
-        if item:
+        if item is not None and item != "":
             return "{name}:{value}*".format(name=name, value=item)
         return ""
 
@@ -149,16 +149,3 @@ class QRPlatbaGenerator:
             XID=self._format_item_string(self.x_id, "X-ID"),
             XURL=self._format_item_string(self.x_url, "X-URL"),
         ).rstrip("*")
-
-    def make_image(self, border=2, box_size=12, error_correction=qrcode.constants.ERROR_CORRECT_M):
-        qr = qrcode.QRCode(
-            version=None,
-            error_correction=error_correction,
-            image_factory=QRPlatbaSVGImage,
-            border=border,
-            box_size=box_size,
-        )
-        qr.add_data(self.get_text())
-        qr.make(fit=True)
-
-        return qr.make_image()
