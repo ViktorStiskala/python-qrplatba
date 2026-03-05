@@ -6,13 +6,30 @@ on:
       - 'v*.*.*'
 
 jobs:
+  tests:
+    uses: ./.github/workflows/main.yml
+
   release:
     name: Release
+    needs: tests
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v6
+
+      - name: Verify tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION=$(python3 -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              print(tomllib.load(f)['project']['version'])
+          ")
+          if [ "$TAG_VERSION" != "$PROJECT_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml version ($PROJECT_VERSION)"
+            exit 1
+          fi
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
