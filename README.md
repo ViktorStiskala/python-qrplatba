@@ -80,6 +80,7 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 > **Breaking changes in `1.2.0`:**
 > - Changed package structure: **`from qrplatba.spayd import QRPlatbaGenerator`** no longer works. Use `from qrplatba import QRPlatbaGenerator` instead. The SPAYD string generator class is available as `from qrplatba import SpaydGenerator`.
 > - Updated default settings: **Default `box_size` changed from 12 to 10**, producing smaller SVG output with clean integer mm dimensions (e.g. `50mm x 51mm` instead of `59.4mm x 60.36mm`). Pass `box_size=12` to `make_image()` to restore the previous dimensions.
+> - **SVG visual output changed:** border thickness doubled (`LINE_SIZE` 0.25 to 0.5), text area below the QR code is taller (`FONT_HEIGHT` 8 to 10), and text positioning adjusted. These changes affect all SVGs regardless of `box_size`.
 > - **Dropped support for Python 3.8**
 
 - Added Python 3.12, 3.13 and 3.14

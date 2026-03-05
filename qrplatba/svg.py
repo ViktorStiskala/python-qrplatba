@@ -157,6 +157,9 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
         if format.upper() != "PNG":
             raise ValueError(f"Unsupported format: {format}")
 
+        self._save_png(stream, zoom=zoom, resvg_kwargs=resvg_kwargs)
+
+    def _save_png(self, stream, *, zoom=None, resvg_kwargs=None):
         try:
             import resvg_py
         except ImportError:
@@ -167,8 +170,7 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
         if resvg_kwargs is None:
             resvg_kwargs = {"zoom": zoom} if zoom is not None else {}
         else:
-            resvg_kwargs.pop("svg_string", None)
-            resvg_kwargs.pop("svg_path", None)
+            resvg_kwargs = {k: v for k, v in resvg_kwargs.items() if k not in ("svg_string", "svg_path")}
             if zoom is not None:
                 resvg_kwargs["zoom"] = zoom
 
