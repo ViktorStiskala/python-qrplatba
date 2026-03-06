@@ -1,7 +1,7 @@
 import importlib.util
 import re
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -9,22 +9,25 @@ import pytest
 from qrplatba import QRPlatbaGenerator
 
 
-class TestSVGImage:
-    """Tests for SVG image generation, dimensions, and structural correctness."""
+class _QRImageTestBase:
+    """Shared test data and helpers. Not collected by pytest (name starts with _)."""
 
     data = {
         "account": "123456789/0123",
         "amount": 400.56,
         "x_vs": 2034456,
         "message": "text",
-        "due_date": datetime.now() + timedelta(days=14),
+        "due_date": date(2025, 6, 15),
     }
 
     def make_image(self, **kwargs):
         generator = QRPlatbaGenerator(**self.data)
         img = generator.make_image(**kwargs)
-
         return img.to_string(encoding="unicode")
+
+
+class TestSVGImage(_QRImageTestBase):
+    """Tests for SVG image generation, dimensions, and structural correctness."""
 
     def test_svg_content(self):
         svg_data = self.make_image()
@@ -76,8 +79,8 @@ class TestSVGImage:
         assert root.get("height") is not None
         assert root.get("viewBox") is not None
 
-        width_val = float(root.get("width").rstrip("mm"))
-        height_val = float(root.get("height").rstrip("mm"))
+        width_val = float(root.get("width").removesuffix("mm"))
+        height_val = float(root.get("height").removesuffix("mm"))
         assert height_val > width_val
 
     @pytest.mark.parametrize("border", [0, 2, 5])
@@ -94,8 +97,8 @@ class TestSVGImage:
         svg_data = self.make_image(box_size=box_size)
         root = ET.fromstring(svg_data)
 
-        width_val = float(root.get("width").rstrip("mm"))
-        height_val = float(root.get("height").rstrip("mm"))
+        width_val = float(root.get("width").removesuffix("mm"))
+        height_val = float(root.get("height").removesuffix("mm"))
         assert width_val == int(width_val), f"width {root.get('width')} is not integer mm"
         assert height_val == int(height_val), f"height {root.get('height')} is not integer mm"
 
@@ -124,7 +127,7 @@ class TestSVGImage:
             assert val == int(val), f"Fractional text {attr}={text.get(attr)}"
 
 
-class TestPNGMissingDependency(TestSVGImage):
+class TestPNGMissingDependency(_QRImageTestBase):
     """Must run regardless of whether resvg_py is installed."""
 
     def test_missing_resvg(self, tmp_path, monkeypatch):
@@ -135,21 +138,21 @@ class TestPNGMissingDependency(TestSVGImage):
         generator = QRPlatbaGenerator(**self.data)
         img = generator.make_image()
         with pytest.raises(ImportError, match="pip install qrplatba"):
-            img.save(tmp_path / "out.png", format="png")
+            img.save(tmp_path / "out.png", output_format="png")
 
     def test_unsupported_format(self):
         """Requesting an unsupported format must raise ValueError."""
         generator = QRPlatbaGenerator(**self.data)
         img = generator.make_image()
         with pytest.raises(ValueError, match="Unsupported format"):
-            img.save("out.bmp", format="bmp")
+            img.save("out.bmp", output_format="bmp")
 
 
 @pytest.mark.skipif(
     not importlib.util.find_spec("resvg_py"),
     reason="resvg_py not installed",
 )
-class TestPNGSave(TestSVGImage):
+class TestPNGSave(_QRImageTestBase):
     """PNG save tests. Skipped when resvg-py is not installed."""
 
     def test_png_save(self, tmp_path):
@@ -157,7 +160,7 @@ class TestPNGSave(TestSVGImage):
         generator = QRPlatbaGenerator(**self.data)
         img = generator.make_image()
         filename = tmp_path / "example.png"
-        img.save(filename, format="png")
+        img.save(filename, output_format="png")
         content = filename.read_bytes()
         assert content[:4] == b"\x89PNG"
 
@@ -167,8 +170,8 @@ class TestPNGSave(TestSVGImage):
         img = generator.make_image()
         f1 = tmp_path / "z1.png"
         f2 = tmp_path / "z2.png"
-        img.save(f1, format="png", zoom=1)
-        img.save(f2, format="png", zoom=2)
+        img.save(f1, output_format="png", zoom=1)
+        img.save(f2, output_format="png", zoom=2)
         assert f2.stat().st_size > f1.stat().st_size
 
     def test_png_uses_bundled_font(self, tmp_path):
@@ -190,11 +193,25 @@ class TestPNGSave(TestSVGImage):
         f_explicit = tmp_path / "explicit.png"
         f_no_fonts = tmp_path / "no_fonts.png"
 
-        img.save(f_default, format="png", zoom=2)
+        img.save(f_default, output_format="png", zoom=2)
         img.save(
-            f_explicit, format="png", zoom=2, resvg_kwargs={"font_files": [_INTER_BOLD], "skip_system_fonts": True}
+            f_explicit,
+            output_format="png",
+            zoom=2,
+            resvg_kwargs={"font_files": [_INTER_BOLD], "skip_system_fonts": True},
         )
-        img.save(f_no_fonts, format="png", zoom=2, resvg_kwargs={"skip_system_fonts": True})
+        img.save(f_no_fonts, output_format="png", zoom=2, resvg_kwargs={"skip_system_fonts": True})
 
         assert f_default.read_bytes() == f_explicit.read_bytes()
         assert f_default.read_bytes() != f_no_fonts.read_bytes()
+
+    def test_png_save_to_filelike(self):
+        """PNG save to a file-like object must produce valid PNG bytes."""
+        import io
+
+        generator = QRPlatbaGenerator(**self.data)
+        img = generator.make_image()
+        buf = io.BytesIO()
+        img.save(buf, output_format="png")
+        buf.seek(0)
+        assert buf.read(4) == b"\x89PNG"
