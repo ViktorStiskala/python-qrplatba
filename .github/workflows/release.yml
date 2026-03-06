@@ -5,10 +5,18 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: read
+
 jobs:
+  tests:
+    uses: ./.github/workflows/main.yml
+
   release:
     name: Release
+    needs: tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -19,6 +27,19 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+
+      - name: Verify tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION=$(python3 -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              print(tomllib.load(f)['project']['version'])
+          ")
+          if [ "$TAG_VERSION" != "$PROJECT_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml version ($PROJECT_VERSION)"
+            exit 1
+          fi
 
       - name: Build project for distribution
         run: uv build

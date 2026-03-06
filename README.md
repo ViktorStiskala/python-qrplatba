@@ -19,7 +19,7 @@ img = generator.make_image()
 img.save('example.svg')
 
 # PNG export (requires: pip install qrplatba[png])
-img.save('example.png', format='png', zoom=2)
+img.save('example.png', output_format='png', zoom=2)
 
 # optional: custom box size and border
 img = generator.make_image(box_size=20, border=4)
@@ -78,15 +78,15 @@ This software is licensed under [MIT license](https://opensource.org/license/mit
 
 > [!CAUTION]
 > **Breaking changes in `1.2.0`:**
-> - Changed package structure: **`from qrplatba.spayd import QRPlatbaGenerator`** no longer works. Use `from qrplatba import QRPlatbaGenerator` instead. The SPAYD string generator class is available as `from qrplatba import SpaydGenerator`.
-> - Updated default settings: **Default `box_size` changed from 12 to 10**, producing smaller SVG output with clean integer mm dimensions (e.g. `50mm x 51mm` instead of `59.4mm x 60.36mm`). Pass `box_size=12` to `make_image()` to restore the previous dimensions.
+> - Changed package structure: **`from qrplatba.spayd import QRPlatbaGenerator`** is deprecated and will be removed in a future version. Use `from qrplatba import QRPlatbaGenerator` instead. The SPAYD string generator class is available as `from qrplatba import SpaydGenerator`.
+> - Updated default settings: **Default `box_size` changed from 12 to 10**, producing smaller SVG output with clean integer mm dimensions (e.g. `50mm x 51mm` instead of `59.4mm x 60.36mm`). Pass `box_size=12` to `make_image()` to restore the previous overall dimensions. Note: SVG visual changes (border thickness, text height) apply at all sizes; `box_size=12` only restores the overall dimensions, not the exact visual appearance.
 > - **SVG visual output changed:** border thickness doubled (`LINE_SIZE` 0.25 to 0.5), text area below the QR code is taller (`FONT_HEIGHT` 8 to 10), and text positioning adjusted. These changes affect all SVGs regardless of `box_size`.
 > - **Dropped support for Python 3.8**
 
 - Added Python 3.12, 3.13 and 3.14
 - Added `SpaydGenerator` class for standalone SPAYD string generation
 - Refactored `QRPlatbaGenerator` to inherit from `SpaydGenerator`
-- Added PNG export support via `save(format='png')` with optional dependency (`pip install qrplatba[png]`)
+- Added PNG export support via `save(output_format='png')` with optional dependency (`pip install qrplatba[png]`)
 - Updated SVG font stack to `Inter, Arial, Helvetica, sans-serif`
 - Migrated from [Poetry](https://python-poetry.org/) to [uv](https://docs.astral.sh/uv/)
 - Replaced `black` with `ruff format` for code formatting

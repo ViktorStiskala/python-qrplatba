@@ -22,7 +22,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "qrcode>=7.4",
+    "qrcode>=7.4,<9",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +43,7 @@ lint = [
 dev = [
     {include-group = "test"},
     {include-group = "lint"},
-    "pre-commit>=4",
+    "resvg-py>=0.2",
 ]
 
 [tool.uv]
@@ -54,6 +54,9 @@ module-root = ""
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
 
 [build-system]
 requires = ["uv_build>=0.10.8,<0.11"]

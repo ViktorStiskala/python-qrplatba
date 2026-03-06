@@ -10,6 +10,7 @@ class SpaydGenerator:
     def __init__(
         self,
         account,
+        bic=None,
         amount=None,
         currency=None,
         x_vs=None,
@@ -31,6 +32,7 @@ class SpaydGenerator:
         http://qr-platba.cz/pro-vyvojare/specifikace-formatu/
 
         :param account: ACC account number, can be specified either as IBAN or in CZ format 12-123456789/0300
+        :param bic: BIC/SWIFT code (optional, appended to ACC as IBAN+BIC)
         :param amount: AM payment amount
         :param currency: CC currency (3 letters)
         :param x_vs: X-VS
@@ -48,7 +50,10 @@ class SpaydGenerator:
         :param x_url: X-URL
         :param reference: RF recipient reference number. Max 16 digits. integer.
         """
+        if account is None:
+            raise ValueError("account is required")
         self.account = account
+        self.bic = bic
         self.amount = amount
         self.currency = currency
         self.x_vs = x_vs
@@ -66,42 +71,43 @@ class SpaydGenerator:
         self.x_url = x_url
         self.reference = reference
 
-    def _convert_to_iban(self, account):
-        """
-        Convert czech account number to IBAN
-        """
-        acc = self.RE_ACCOUNT.match(account)
+    def _convert_to_iban(self, match):
+        """Convert czech account number to IBAN from a RE_ACCOUNT match object."""
         iban = "CZ00{b}{ba:0>6}{a:0>10}".format(
-            ba=acc.group("ba") or 0,
-            a=acc.group("a"),
-            b=acc.group("b"),
+            ba=match.group("ba") or 0,
+            a=match.group("a"),
+            b=match.group("b"),
         )
 
         # convert IBAN letters into numbers
         crc = re.sub(r"[A-Z]", lambda m: str(ord(m.group(0)) - 55), iban[4:] + iban[:4])
 
         # compute control digits
-        digits = "{:0>2}".format(98 - int(crc) % 97)
+        digits = f"{98 - int(crc) % 97:0>2}"
 
         return iban[:2] + digits + iban[4:]
 
     @property
     def _account(self):
         if self.account is not None:
-            out = "ACC:{}*"
-
-            if self.RE_ACCOUNT.match(self.account):
-                return out.format(self._convert_to_iban(self.account))
-            return out.format(self.account)
+            m = self.RE_ACCOUNT.match(self.account)
+            if m:
+                iban = self._convert_to_iban(m)
+            else:
+                iban = self.account
+            if self.bic:
+                return f"ACC:{iban}+{self.bic}*"
+            return f"ACC:{iban}*"
         return ""
 
     @property
     def _alternate_accounts(self):
-        if self.alternate_accounts is not None:
+        if self.alternate_accounts:
             formatted = []
             for account in self.alternate_accounts:
-                if self.RE_ACCOUNT.match(account):
-                    formatted.append(self._convert_to_iban(account))
+                m = self.RE_ACCOUNT.match(account)
+                if m:
+                    formatted.append(self._convert_to_iban(m))
                 else:
                     formatted.append(account)
             return "ALT-ACC:{}*".format(",".join(formatted))
@@ -110,7 +116,7 @@ class SpaydGenerator:
     @property
     def _amount(self):
         if self.amount is not None:
-            return "AM:{:.2f}*".format(self.amount)
+            return f"AM:{self.amount:.2f}*"
         return ""
 
     @property
@@ -126,7 +132,7 @@ class SpaydGenerator:
 
     def _format_item_string(self, item, name):
         if item is not None and item != "":
-            return "{name}:{value}*".format(name=name, value=item)
+            return f"{name}:{item}*"
         return ""
 
     def get_text(self):
@@ -149,3 +155,19 @@ class SpaydGenerator:
             XID=self._format_item_string(self.x_id, "X-ID"),
             XURL=self._format_item_string(self.x_url, "X-URL"),
         ).rstrip("*")
+
+
+def __getattr__(name):
+    if name == "QRPlatbaGenerator":
+        import warnings
+
+        warnings.warn(
+            "Importing QRPlatbaGenerator from qrplatba.spayd is deprecated. "
+            "Use 'from qrplatba import QRPlatbaGenerator' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from qrplatba.generator import QRPlatbaGenerator
+
+        return QRPlatbaGenerator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -138,6 +138,21 @@ class TestFieldPresence:
         assert f"{key}:{value}" in generator.get_text()
 
     @pytest.mark.parametrize(
+        "field,value,key",
+        [
+            ("payment_type", "IP", "PT"),
+            ("notification_type", "E", "NT"),
+            ("notification_address", "test@example.com", "NTA"),
+            ("x_per", 7, "X-PER"),
+            ("x_id", "ABCDEF", "X-ID"),
+            ("x_url", "https://example.com", "X-URL"),
+        ],
+    )
+    def test_optional_fields_included(self, field, value, key):
+        generator = QRPlatbaGenerator("CZ6508000000192000145399", **{field: value})
+        assert f"{key}:{value}" in generator.get_text()
+
+    @pytest.mark.parametrize(
         "field,key",
         [
             ("x_vs", "X-VS"),
@@ -164,6 +179,10 @@ class TestAlternateAccounts:
         assert "SK3112000000198742637541" in text
         assert "/0800" not in text
 
+    def test_empty_alternate_accounts_omitted(self):
+        generator = QRPlatbaGenerator("CZ6508000000192000145399", alternate_accounts=[])
+        assert "ALT-ACC" not in generator.get_text()
+
     def test_alternate_accounts_single_iban(self):
         generator = QRPlatbaGenerator(
             "CZ6508000000192000145399",
@@ -173,9 +192,28 @@ class TestAlternateAccounts:
         assert "ALT-ACC:CZ7508000000000123456789" in text
 
 
+class TestBIC:
+    """BIC/SWIFT code must be appended to ACC with + separator."""
+
+    def test_iban_with_bic(self):
+        generator = QRPlatbaGenerator("CZ5855000000001265098001", bic="RZBCCZPP")
+        assert "ACC:CZ5855000000001265098001+RZBCCZPP" in generator.get_text()
+
+    def test_czech_account_with_bic(self):
+        generator = QRPlatbaGenerator("123456789/0123", bic="RZBCCZPP")
+        text = generator.get_text()
+        assert "+RZBCCZPP" in text
+        assert "/0123" not in text
+
+    def test_no_bic(self):
+        generator = QRPlatbaGenerator("CZ5855000000001265098001")
+        assert "+" not in generator.get_text().split("ACC:")[1].split("*")[0]
+
+
 class TestBackwardCompatibility:
     """Verify all documented and expected import paths and API patterns still work."""
 
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @pytest.mark.parametrize(
         "import_statement,attr",
         [
@@ -183,12 +221,24 @@ class TestBackwardCompatibility:
             ("from qrplatba import SpaydGenerator", "SpaydGenerator"),
             ("from qrplatba.generator import QRPlatbaGenerator", "QRPlatbaGenerator"),
             ("from qrplatba.spayd import SpaydGenerator", "SpaydGenerator"),
+            ("from qrplatba.spayd import QRPlatbaGenerator", "QRPlatbaGenerator"),
         ],
     )
     def test_import_paths(self, import_statement, attr):
         ns = {}
         exec(import_statement, ns)  # noqa: S102
         assert attr in ns
+
+    def test_deprecated_spayd_import_warns(self):
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            from qrplatba.spayd import QRPlatbaGenerator  # noqa: F401, F811
+
+            assert len(w) == 1
+            assert issubclass(w[0].category, DeprecationWarning)
+            assert "qrplatba.spayd" in str(w[0].message)
 
     def test_qrplatba_generator_inherits_spayd(self):
         from qrplatba import QRPlatbaGenerator, SpaydGenerator

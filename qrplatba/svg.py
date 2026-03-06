@@ -135,10 +135,7 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
         scaled = self._get_scaled_sizes()
         h_pixels = self.pixel_size + (self.FONT_HEIGHT * scaled.ratio)
 
-        box = "0 0 {w} {h}".format(
-            w=self.units(self.pixel_size, text=False),
-            h=self.units(h_pixels, text=False),
-        )
+        box = f"0 0 {self.units(self.pixel_size, text=False)} {self.units(h_pixels, text=False)}"
         svg_el = super()._svg(viewBox=box, **kwargs)
         svg_el.append(self.make_border())
         svg_el.append(self.make_text())
@@ -148,14 +145,14 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
 
         return svg_el
 
-    def save(self, stream, kind=None, *, format=None, zoom=None, resvg_kwargs=None):
-        if format is None:
-            format = kind
-        if format is None or format.upper() == "SVG":
+    def save(self, stream, kind=None, *, output_format=None, zoom=None, resvg_kwargs=None):
+        if output_format is None:
+            output_format = kind
+        if output_format is None or output_format.upper() == "SVG":
             return super().save(stream, kind=kind)
 
-        if format.upper() != "PNG":
-            raise ValueError(f"Unsupported format: {format}")
+        if output_format.upper() != "PNG":
+            raise ValueError(f"Unsupported format: {output_format}")
 
         self._save_png(stream, zoom=zoom, resvg_kwargs=resvg_kwargs)
 
@@ -174,8 +171,8 @@ class QRPlatbaSVGImage(svg.SvgPathImage):
             if zoom is not None:
                 resvg_kwargs["zoom"] = zoom
 
-        # SVG uses mm units which require a DPI value for rasterization
-        resvg_kwargs.setdefault("dpi", 96)
+        # SVG uses mm units; 300 DPI produces print-quality output with readable text
+        resvg_kwargs.setdefault("dpi", 300)
         resvg_kwargs.setdefault("shape_rendering", "crisp_edges")
 
         if "font_files" not in resvg_kwargs and "skip_system_fonts" not in resvg_kwargs:
