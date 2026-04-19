@@ -25,6 +25,7 @@ jobs:
         with:
           python-version: "3.14"
           enable-cache: true
+          cache-suffix: lint
 
       - name: Check lock file
         run: uv lock --check
@@ -52,6 +53,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
+          cache-suffix: ${{ matrix.extras || 'core' }}
 
       - name: Build package
         run: uv build --wheel --quiet
