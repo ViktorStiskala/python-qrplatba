@@ -27,6 +27,7 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+          cache-suffix: release
 
       - name: Verify tag matches package version
         run: |
