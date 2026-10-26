@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 
 due = datetime.now() + timedelta(days=14)
-generator = QRPlatbaGenerator('123456789/0123', 400.56, x_vs=2034456, message='text', due_date=due)
+generator = QRPlatbaGenerator('123456789/0123', amount=400.56, x_vs=2034456, message='text', due_date=due)
 img = generator.make_image()
 img.save('example.svg')
 
@@ -64,7 +64,7 @@ QR Platba uses SPAYD format (`application/x-shortpaymentdescriptor`) for encodin
 ```python
 from qrplatba import SpaydGenerator
 
-generator = SpaydGenerator('123456789/0123', 400.56, x_vs=2034456, message='text', due_date=due)
+generator = SpaydGenerator('123456789/0123', amount=400.56, x_vs=2034456, message='text', due_date=due)
 spayd = generator.get_text()
 ```
 
