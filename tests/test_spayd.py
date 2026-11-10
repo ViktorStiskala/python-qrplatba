@@ -274,3 +274,26 @@ class TestBackwardCompatibility:
         svg_data = img.to_string(encoding="unicode")
         assert isinstance(svg_data, str)
         assert "QR platba" in svg_data
+
+
+class TestTrailingGarbageAccount:
+    """Account strings with extra trailing characters must not be IBAN-converted."""
+
+    @pytest.mark.parametrize(
+        "account",
+        [
+            "19-2000145399/0800XYZ",
+            "19-2000145399/0800 ",
+            "123456789/0300extra",
+        ],
+    )
+    def test_trailing_garbage_not_converted(self, account):
+        generator = QRPlatbaGenerator(account)
+        assert f"ACC:{account}" in generator.get_text()
+
+    def test_trailing_garbage_alternate_account_not_converted(self):
+        generator = QRPlatbaGenerator(
+            "CZ6508000000192000145399",
+            alternate_accounts=["19-2000145399/0800XYZ"],
+        )
+        assert "ALT-ACC:19-2000145399/0800XYZ" in generator.get_text()
