@@ -90,7 +90,7 @@ class SpaydGenerator:
     @property
     def _account(self):
         if self.account is not None:
-            m = self.RE_ACCOUNT.match(self.account)
+            m = self.RE_ACCOUNT.fullmatch(self.account)
             if m:
                 iban = self._convert_to_iban(m)
             else:
@@ -105,7 +105,7 @@ class SpaydGenerator:
         if self.alternate_accounts:
             formatted = []
             for account in self.alternate_accounts:
-                m = self.RE_ACCOUNT.match(account)
+                m = self.RE_ACCOUNT.fullmatch(account)
                 if m:
                     formatted.append(self._convert_to_iban(m))
                 else:
